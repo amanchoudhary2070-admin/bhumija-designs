@@ -1,0 +1,23 @@
+{% extends "shop/base.html" %}
+{% load shop_extras %}
+{% block title %}Test Checkout - {{ SHOP_NAME }}{% endblock %}
+
+{% block content %}
+  <div class="wrap pay-page">
+    <div class="summary pay-box">
+      <h1>Test Checkout</h1>
+      <p class="muted">This stands in for Razorpay while <code>PAYMENT_PROVIDER=dev</code>. Nothing is charged. In production, customers pay through Razorpay (UPI, cards, netbanking, wallets) instead.</p>
+
+      {% if order.status == "pending" %}
+        <p class="pay-amount">{{ order.total|inr }}</p>
+        <form method="post" class="btn-row">
+          {% csrf_token %}
+          <button class="btn btn-terracotta btn-block" type="submit" name="action" value="pay">Simulate successful payment</button>
+          <button class="btn btn-quiet btn-block" type="submit" name="action" value="cancel">Cancel payment</button>
+        </form>
+      {% else %}
+        <p><a href="{{ order.get_absolute_url }}">View order {{ order.reference }}</a></p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

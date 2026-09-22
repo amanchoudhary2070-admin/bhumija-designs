@@ -1,0 +1,132 @@
+{% extends "shop/base.html" %}
+{% load icons shop_extras %}
+{% block body_class %}is-home{% endblock %}
+
+{% block content %}
+  {% if hero_slides %}
+    <section class="hero" data-slider aria-roledescription="carousel">
+      <div class="hero-track">
+        {% for slide in hero_slides %}
+          <div class="hero-slide{% if forloop.first %} is-active{% endif %}" data-slide {% if not forloop.first %}hidden{% endif %}>
+            <div class="wrap hero-inner">
+              <div class="hero-copy">
+                {% if slide.eyebrow %}<p class="eyebrow">{{ slide.eyebrow }}</p>{% endif %}
+                <h1>{{ slide.title|linebreaksbr }}{% if slide.highlight %} <span class="highlight">{{ slide.highlight }}</span>{% endif %}</h1>
+                {% if slide.text %}<p class="hero-text">{{ slide.text }}</p>{% endif %}
+                {% if slide.button_label %}<a class="btn btn-terracotta" href="{{ slide.link|default:'/shop/' }}">{{ slide.button_label }} {% ui_icon "chevron-right" 16 2.2 %}</a>{% endif %}
+                <ul class="hero-badges">
+                  <li>{% ui_icon "shield" 18 1.6 %} Authentic Art</li>
+                  <li>{% ui_icon "heart" 18 1.6 %} Handcrafted with Love</li>
+                  <li>{% ui_icon "user" 18 1.6 %} Support Artisans</li>
+                  <li>{% ui_icon "globe" 18 1.6 %} Worldwide Shipping</li>
+                </ul>
+              </div>
+              <div class="hero-media">
+                {% if slide.image %}<img src="{{ slide.image.url }}" alt="">{% else %}<div class="hero-media-ph">{% category_icon "painting" 90 %}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% if hero_slides|length > 1 %}
+        <button class="hero-nav hero-prev" type="button" data-slide-prev aria-label="Previous slide">{% ui_icon "chevron-left" 22 %}</button>
+        <button class="hero-nav hero-next" type="button" data-slide-next aria-label="Next slide">{% ui_icon "chevron-right" 22 %}</button>
+        <div class="hero-dots" data-slide-dots>
+          {% for slide in hero_slides %}<button type="button" data-slide-dot="{{ forloop.counter0 }}" class="{% if forloop.first %}is-active{% endif %}" aria-label="Go to slide {{ forloop.counter }}"></button>{% endfor %}
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if categories %}
+    <section class="section category-section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Shop by Category</h2>
+          <a class="section-link" href="{% url 'shop:category_index' %}">View All Categories {% ui_icon "chevron-right" 15 2.2 %}</a>
+        </div>
+        <ul class="category-grid">
+          {% for cat in categories %}
+            <li>
+              <a href="{{ cat.get_absolute_url }}">
+                <span class="category-circle">
+                  {% if cat.image %}<img src="{{ cat.image.url }}" alt="">{% else %}{% category_icon cat.icon_key 30 %}{% endif %}
+                </span>
+                <span>{{ cat.name }}</span>
+              </a>
+            </li>
+          {% endfor %}
+          <li>
+            <a href="{% url 'shop:new_arrivals' %}">
+              <span class="category-circle category-circle-accent">{% category_icon "leaf" 30 %}</span>
+              <span>New Arrivals</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if featured %}
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Featured Products</h2>
+          <a class="section-link" href="{% url 'shop:product_list' %}">View All Products {% ui_icon "chevron-right" 15 2.2 %}</a>
+        </div>
+        <ul class="grid grid-6">
+          {% for product in featured %}<li>{% include "shop/_product_card.html" %}</li>{% endfor %}
+        </ul>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if promo_left or promo_right %}
+    <section class="promo-section">
+      <div class="promo-grid">
+        {% if promo_left %}
+          <div class="promo-panel promo-forest">
+            <div class="promo-copy">
+              <h2>{{ promo_left.title|linebreaksbr }}</h2>
+              {% if promo_left.text %}<p>{{ promo_left.text }}</p>{% endif %}
+              {% if promo_left.button_label %}<a class="btn btn-tan" href="{{ promo_left.link }}">{{ promo_left.button_label }} {% ui_icon "chevron-right" 15 2.2 %}</a>{% endif %}
+            </div>
+          </div>
+        {% endif %}
+        <div class="promo-media">
+          {% category_icon "home" 64 %}
+        </div>
+        {% if promo_right %}
+          <div class="promo-panel promo-terracotta">
+            <div class="promo-copy">
+              <h2>{{ promo_right.title|linebreaksbr }}</h2>
+              {% if promo_right.text %}<p>{{ promo_right.text }}</p>{% endif %}
+              {% if promo_right.button_label %}<a class="btn btn-cream" href="{{ promo_right.link }}">{{ promo_right.button_label }} {% ui_icon "chevron-right" 15 2.2 %}</a>{% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="section story-section">
+    <div class="wrap story-grid">
+      <div class="story-copy">
+        <h2>The Story Behind {{ SHOP_NAME }}</h2>
+        <p>{{ SHOP_NAME }} is a celebration of Mithila's rich artistic heritage. We work with skilled artisans to bring authentic Madhubani art, handcrafted decor and meaningful designs to your home. Every purchase supports traditional artists and helps preserve this timeless culture.</p>
+        <a class="btn btn-terracotta-outline" href="{% url 'content:about' %}">Our Story {% ui_icon "chevron-right" 15 2.2 %}</a>
+        <ul class="value-row">
+          <li>{% category_icon "lotus" 26 %}<span>Preserve Mithila's Heritage</span></li>
+          <li>{% category_icon "lotus" 26 %}<span>Empower Rural Artisans</span></li>
+          <li>{% category_icon "leaf" 26 %}<span>Sustainable &amp; Ethical</span></li>
+          <li>{% category_icon "leaf" 26 %}<span>Art for a Better Tomorrow</span></li>
+        </ul>
+      </div>
+      <blockquote class="story-quote">
+        <p>&ldquo;Art is not just what we create, but the lives we touch.&rdquo;</p>
+        <cite>&mdash; Team {{ SHOP_NAME }}</cite>
+      </blockquote>
+    </div>
+  </section>
+{% endblock %}
+

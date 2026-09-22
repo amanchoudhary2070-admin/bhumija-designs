@@ -1,0 +1,17 @@
+{% extends "shop/base.html" %}
+{% block title %}Login - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap narrow">
+    <h1 class="page-title">Login</h1>
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="field"><label for="{{ form.username.id_for_label }}">Email</label>{{ form.username }}{{ form.username.errors }}</div>
+      <div class="field"><label for="{{ form.password.id_for_label }}">Password</label>{{ form.password }}{{ form.password.errors }}</div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-terracotta btn-block" type="submit">Login</button>
+    </form>
+    <p class="form-footnote"><a href="{% url 'accounts:password_reset' %}">Forgot your password?</a></p>
+    <p class="form-footnote">New here? <a href="{% url 'accounts:signup' %}">Create an account</a></p>
+  </div>
+{% endblock %}

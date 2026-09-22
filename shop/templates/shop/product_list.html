@@ -1,0 +1,92 @@
+{% extends "shop/base.html" %}
+{% load icons shop_extras %}
+{% block title %}{{ heading }} - {{ SHOP_NAME }}{% endblock %}
+
+{% block content %}
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="{% url 'content:home' %}">Home</a> <span>/</span>
+      {% if category.parent %}<a href="{{ category.parent.get_absolute_url }}">{{ category.parent.name }}</a> <span>/</span> {% endif %}
+      <span aria-current="page">{{ heading }}</span>
+    </nav>
+    <h1 class="page-title">{{ heading }}</h1>
+
+    <div class="listing-layout">
+      <aside class="filters" aria-label="Filters">
+        {% if side_categories %}
+          <div class="filter-block">
+            <h2>{{ side_parent.name|default:"Categories" }}</h2>
+            <ul class="filter-list">
+              {% for c in side_categories %}
+                <li><a href="{{ c.get_absolute_url }}"{% if category.pk == c.pk %} class="is-active" aria-current="page"{% endif %}>{{ c.name }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        <div class="filter-block">
+          <h2>Price</h2>
+          <ul class="filter-list">
+            {% for link in price_links %}
+              <li><a href="{{ link.url }}"{% if link.active %} class="is-active"{% endif %}>{{ link.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="filter-block">
+          <h2>Customer rating</h2>
+          <ul class="filter-list">
+            {% for link in rating_links %}
+              <li><a href="{{ link.url }}"{% if link.active %} class="is-active"{% endif %}>{% include "shop/_stars.html" with rating=link.label|slice:":1" size=12 %} {{ link.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="filter-block">
+          <a class="check-row" href="{{ in_stock_url }}">
+            <span class="checkbox{% if params.in_stock %} is-checked{% endif %}" aria-hidden="true">{% if params.in_stock %}{% ui_icon "check" 11 3 %}{% endif %}</span>
+            In stock only
+          </a>
+        </div>
+      </aside>
+
+      <div class="listing-main">
+        {% if chips %}
+          <div class="chip-row">
+            {% for chip in chips %}<a class="chip" href="{{ chip.url }}">{{ chip.label }} {% ui_icon "close" 12 2.4 %}</a>{% endfor %}
+            <a class="chip chip-clear" href="{{ clear_url }}">Clear all</a>
+          </div>
+        {% endif %}
+
+        <div class="toolbar">
+          <p class="result-count">{{ page.paginator.count }} product{{ page.paginator.count|pluralize }}</p>
+          <form class="sort-form" method="get">
+            {% for key, value in hidden_params.items %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+            <label for="sort">Sort by</label>
+            <select id="sort" name="sort" onchange="this.form.submit()">
+              {% for opt in sort_options %}<option value="{{ opt.key }}" {% if opt.selected %}selected{% endif %}>{{ opt.label }}</option>{% endfor %}
+            </select>
+          </form>
+        </div>
+
+        {% if page.object_list %}
+          <ul class="grid grid-4">
+            {% for product in page %}<li>{% include "shop/_product_card.html" %}</li>{% endfor %}
+          </ul>
+
+          {% if page.has_other_pages %}
+            <nav class="pager" aria-label="Pages">
+              {% if page.has_previous %}<a href="?{{ page_query }}page={{ page.previous_page_number }}">{% ui_icon "chevron-left" 16 2.2 %} Previous</a>{% else %}<span></span>{% endif %}
+              <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+              {% if page.has_next %}<a href="?{{ page_query }}page={{ page.next_page_number }}">Next {% ui_icon "chevron-right" 16 2.2 %}</a>{% else %}<span></span>{% endif %}
+            </nav>
+          {% endif %}
+        {% else %}
+          <div class="empty">
+            <p>No products match these filters.{% if chips %} <a href="{{ clear_url }}">Clear filters</a> to see everything{% else %}Please check back soon{% endif %}.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

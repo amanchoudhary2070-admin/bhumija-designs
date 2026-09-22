@@ -1,0 +1,4 @@
+{% load icons shop_extras %}<span class="stars" style="--pct: {{ rating|star_percent }}%" aria-hidden="true">
+  <span class="stars-base">{% for _ in "12345" %}{% ui_icon "star-outline" size|default:14 2 %}{% endfor %}</span>
+  <span class="stars-fill">{% for _ in "12345" %}{% ui_icon "star" size|default:14 %}{% endfor %}</span>
+</span><span class="sr-only">Rated {{ rating }} out of 5</span>

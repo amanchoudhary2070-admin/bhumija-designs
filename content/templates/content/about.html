@@ -1,0 +1,24 @@
+{% extends "shop/base.html" %}
+{% load icons %}
+{% block title %}About Us - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap narrow-lg">
+    <h1 class="page-title">The Story Behind {{ SHOP_NAME }}</h1>
+    <p class="lede">{{ SHOP_NAME }} is a celebration of Mithila's rich artistic heritage. We work with skilled artisans to bring authentic Madhubani art, handcrafted decor and meaningful designs to your home.</p>
+    <div class="prose">
+      <p>Madhubani painting (also called Mithila art) has been practised for generations by the women and artisan families of the Mithila region of Bihar, traditionally painted on the walls and floors of homes during festivals and weddings. We work directly with artisan families to bring that tradition onto canvas, ceramics, textiles and home decor for modern homes &mdash; while making sure a fair share of every sale reaches the artisan who made it.</p>
+      <p>Every piece is genuinely handmade. Because of that, no two pieces are ever perfectly identical &mdash; the small variations in line and colour are part of what makes each one yours.</p>
+    </div>
+    <ul class="value-row value-row-page">
+      <li>{% category_icon "lotus" 30 %}<span>Preserve Mithila's Heritage</span></li>
+      <li>{% category_icon "lotus" 30 %}<span>Empower Rural Artisans</span></li>
+      <li>{% category_icon "leaf" 30 %}<span>Sustainable &amp; Ethical</span></li>
+      <li>{% category_icon "leaf" 30 %}<span>Art for a Better Tomorrow</span></li>
+    </ul>
+    <blockquote class="story-quote story-quote-page">
+      <p>&ldquo;Art is not just what we create, but the lives we touch.&rdquo;</p>
+      <cite>&mdash; Team {{ SHOP_NAME }}</cite>
+    </blockquote>
+    <p class="cta-row"><a class="btn btn-terracotta" href="{% url 'shop:artisan_list' %}">Meet our artisans</a> <a class="btn btn-terracotta-outline" href="{% url 'content:contact' %}">Get in touch</a></p>
+  </div>
+{% endblock %}

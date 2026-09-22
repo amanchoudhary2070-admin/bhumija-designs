@@ -1,0 +1,27 @@
+{% autoescape off %}Hi {{ order.full_name }},
+
+{% if order.status == "review" %}Thank you for your order. We've received your payment, but we need to double-check availability of one of the pieces. We'll email you within a day to confirm or refund you in full.
+{% else %}Thank you for your order! We've received your payment and will start packing it soon.{% endif %}
+
+Order {{ order.reference }}
+{% for item in items %}
+  {{ item.quantity }} x {{ item.name }}   {{ CURRENCY_SYMBOL }}{{ item.line_total }}{% endfor %}
+
+Subtotal: {{ CURRENCY_SYMBOL }}{{ order.subtotal }}
+Shipping: {{ CURRENCY_SYMBOL }}{{ order.shipping }}
+Total:    {{ CURRENCY_SYMBOL }}{{ order.total }}
+
+We'll ship it to:
+{{ order.full_name }}
+{{ order.address_line1 }}{% if order.address_line2 %}
+{{ order.address_line2 }}{% endif %}
+{{ order.city }}{% if order.state %}, {{ order.state }}{% endif %} {{ order.postal_code }}
+{{ order.country }}
+{{ order.phone }}
+
+Track your order any time: {{ SITE_URL }}{{ order.get_absolute_url }}
+
+Reply to this email if anything needs changing.
+
+{{ SHOP_NAME }}
+{% endautoescape %}

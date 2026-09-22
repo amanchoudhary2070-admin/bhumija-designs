@@ -1,0 +1,33 @@
+{% extends "shop/base.html" %}
+{% load icons %}
+{% block title %}My Account - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">Hi, {{ user.first_name|default:user.email }}</h1>
+    <div class="account-grid">
+      <a class="account-tile" href="{% url 'accounts:orders' %}">{% ui_icon "package" 26 1.5 %}<span>My Orders</span></a>
+      <a class="account-tile" href="{% url 'shop:wishlist' %}">{% ui_icon "heart" 26 1.5 %}<span>Wishlist ({{ wishlist_count }})</span></a>
+      <a class="account-tile" href="{% url 'accounts:profile' %}">{% ui_icon "user" 26 1.5 %}<span>Profile Details</span></a>
+      <a class="account-tile" href="{% url 'accounts:logout' %}">{% ui_icon "close" 26 1.5 %}<span>Logout</span></a>
+    </div>
+
+    <h2 class="section-title">Recent orders</h2>
+    {% if orders %}
+      <ul class="order-list">
+        {% for order in orders %}
+          <li>
+            <a href="{{ order.get_absolute_url }}">
+              <span>{{ order.reference }}</span>
+              <span class="muted">{{ order.created_at|date:"d M Y" }}</span>
+              <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+              <span>{{ order.total|floatformat:2 }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+      <p><a href="{% url 'accounts:orders' %}">View all orders &rarr;</a></p>
+    {% else %}
+      <p class="muted">You haven't placed any orders yet. <a href="{% url 'shop:product_list' %}">Start shopping</a>.</p>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "shop/base.html" %}
+{% load icons shop_extras %}
+{% block title %}Your Cart - {{ SHOP_NAME }}{% endblock %}
+
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">Your Cart</h1>
+
+    {% if cart.lines %}
+      <div class="cart-layout">
+        <ul class="lines">
+          {% for line in cart.lines %}
+            <li class="line">
+              <a class="line-media" href="{{ line.product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
+                {% if line.product.image %}<img src="{{ line.product.image.url }}" alt=""> {% else %}<span class="ph-fallback">{{ line.product.name|first }}</span>{% endif %}
+              </a>
+              <div class="line-info">
+                <h2><a href="{{ line.product.get_absolute_url }}">{{ line.product.name }}</a></h2>
+                <p class="muted">{{ line.product.price|inr }} each</p>
+                <div class="line-actions">
+                  {% if line.product.stock > 1 %}
+                    <form method="post" action="{% url 'shop:cart_update' line.product.pk %}" class="inline-form">
+                      {% csrf_token %}
+                      <label for="qty-{{ line.product.pk }}">Qty</label>
+                      <input id="qty-{{ line.product.pk }}" class="qty" type="number" name="quantity" value="{{ line.quantity }}" min="1" max="{{ line.product.stock }}" inputmode="numeric">
+                      <button class="link-button" type="submit">Update</button>
+                    </form>
+                  {% else %}
+                    <span class="muted">Qty: 1 (one-of-a-kind)</span>
+                  {% endif %}
+                  <form method="post" action="{% url 'shop:cart_remove' line.product.pk %}" class="inline-form">
+                    {% csrf_token %}
+                    <button class="link-button" type="submit">{% ui_icon "trash" 14 1.8 %} Remove</button>
+                  </form>
+                </div>
+              </div>
+              <p class="line-total">{{ line.line_total|inr }}</p>
+            </li>
+          {% endfor %}
+        </ul>
+
+        <aside class="summary" aria-label="Order summary">
+          <h2>Order Summary</h2>
+          {% include "shop/_totals.html" with subtotal=cart.subtotal shipping=cart.shipping total=cart.total %}
+          {% if cart.free_shipping_remaining %}
+            <div class="ship-progress">
+              <p class="muted small">Add {{ cart.free_shipping_remaining|inr }} more for free shipping</p>
+              <div class="ship-bar"><span style="width: {{ cart.free_shipping_progress }}%"></span></div>
+            </div>
+          {% else %}
+            <p class="ship-qualified">{% ui_icon "check-circle" 15 2 %} You've got free shipping!</p>
+          {% endif %}
+          <a class="btn btn-terracotta btn-block" href="{% url 'shop:checkout' %}">Proceed to Checkout</a>
+          <a class="btn-continue" href="{% url 'shop:product_list' %}">{% ui_icon "chevron-left" 15 2.2 %} Continue shopping</a>
+        </aside>
+      </div>
+    {% else %}
+      <div class="empty">
+        <p>Your cart is empty. <a href="{% url 'shop:product_list' %}">Browse the shop</a>.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

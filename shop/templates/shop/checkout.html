@@ -1,0 +1,44 @@
+{% extends "shop/base.html" %}
+{% load icons shop_extras %}
+{% block title %}Checkout - {{ SHOP_NAME }}{% endblock %}
+
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">Checkout</h1>
+
+    <div class="cart-layout">
+      <form method="post" novalidate class="checkout-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <fieldset class="fieldset">
+          <legend>Contact &amp; delivery details</legend>
+          <div class="form-grid">
+            {% include "shop/_field.html" with field=form.full_name wide=True %}
+            {% include "shop/_field.html" with field=form.email %}
+            {% include "shop/_field.html" with field=form.phone %}
+            {% include "shop/_field.html" with field=form.address_line1 wide=True %}
+            {% include "shop/_field.html" with field=form.address_line2 wide=True %}
+            {% include "shop/_field.html" with field=form.city %}
+            {% include "shop/_field.html" with field=form.state %}
+            {% include "shop/_field.html" with field=form.postal_code %}
+          </div>
+        </fieldset>
+
+        <button class="btn btn-terracotta btn-block" type="submit">{% ui_icon "shield" 17 1.8 %} Continue to Payment</button>
+        <p class="muted small">You'll pay by UPI, card, netbanking or wallet on the next step. We never see or store your payment details.</p>
+      </form>
+
+      <aside class="summary" aria-label="Order summary">
+        <h2>Your Order</h2>
+        <ul class="mini-lines">
+          {% for line in cart.lines %}
+            <li><span>{{ line.quantity }} &times; {{ line.product.name }}</span><span>{{ line.line_total|inr }}</span></li>
+          {% endfor %}
+        </ul>
+        {% include "shop/_totals.html" with subtotal=cart.subtotal shipping=cart.shipping total=cart.total %}
+        <p class="small"><a href="{% url 'shop:cart' %}">Edit cart</a></p>
+      </aside>
+    </div>
+  </div>
+{% endblock %}

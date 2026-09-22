@@ -1,0 +1,15 @@
+{% autoescape off %}New order {{ order.reference }} - status: {{ order.get_status_display }}
+{% if order.status == "review" %}
+!! Something sold out before this payment was confirmed:
+{{ order.internal_note }}
+{% endif %}
+{{ order.full_name }} <{{ order.email }}> | {{ order.phone }}
+{% for item in items %}
+  {{ item.quantity }} x {{ item.name }}   {{ CURRENCY_SYMBOL }}{{ item.line_total }}{% endfor %}
+
+Total: {{ CURRENCY_SYMBOL }}{{ order.total }} (shipping {{ CURRENCY_SYMBOL }}{{ order.shipping }})
+
+Ship to:
+{{ order.address_line1 }}{% if order.address_line2 %}, {{ order.address_line2 }}{% endif %}
+{{ order.city }}{% if order.state %}, {{ order.state }}{% endif %} {{ order.postal_code }}, {{ order.country }}
+{% endautoescape %}

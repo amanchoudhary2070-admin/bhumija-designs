@@ -1,0 +1,60 @@
+{% extends "shop/base.html" %}
+{% load icons shop_extras %}
+{% block title %}Order {{ order.reference }} - {{ SHOP_NAME }}{% endblock %}
+{% block head %}{% if auto_refresh %}<meta http-equiv="refresh" content="4">{% endif %}{% endblock %}
+
+{% block content %}
+  <div class="wrap">
+    <section class="order-head">
+      {% if order.status == "pending" %}
+        {% if auto_refresh %}
+          <div class="status-icon status-pending">{% ui_icon "clock" 26 1.6 %}</div>
+          <h1>Confirming your payment&hellip;</h1>
+          <p>This page refreshes on its own and usually takes a few seconds. If you were charged and nothing changes after a minute, contact us with order {{ order.reference }}.</p>
+        {% else %}
+          <h1>This order wasn't completed</h1>
+          <p>No payment was received. <a href="{% url 'shop:product_list' %}">Return to the shop</a> to start again.</p>
+        {% endif %}
+      {% elif order.status == "paid" %}
+        <div class="status-icon status-paid">{% ui_icon "check-circle" 26 1.6 %}</div>
+        <h1>Thank you for your order!</h1>
+        <p>We've emailed a receipt to {{ order.email }}. We'll email you again when it ships.</p>
+      {% elif order.status == "shipped" %}
+        <div class="status-icon status-paid">{% ui_icon "truck" 26 1.6 %}</div>
+        <h1>Your order is on its way</h1>
+        <p>{% if order.tracking_number %}{{ order.courier }} tracking number: <strong>{{ order.tracking_number }}</strong>{% else %}We've dispatched your order.{% endif %}</p>
+      {% elif order.status == "review" %}
+        <div class="status-icon status-review">{% ui_icon "clock" 26 1.6 %}</div>
+        <h1>Payment received &mdash; checking availability</h1>
+        <p>One of the pieces may have sold just before your payment arrived. We'll email {{ order.email }} within a day to confirm, or refund you in full.</p>
+      {% else %}
+        <h1>This order was cancelled</h1>
+        <p><a href="{% url 'shop:product_list' %}">Return to the shop</a></p>
+      {% endif %}
+      <p class="muted">Order {{ order.reference }} &middot; placed {{ order.created_at|date:"d M Y, g:i A" }}</p>
+    </section>
+
+    <div class="cart-layout">
+      <section>
+        <h2 class="section-title">Items</h2>
+        <ul class="mini-lines">
+          {% for item in order.items.all %}
+            <li><span>{{ item.quantity }} &times; {{ item.name }}</span><span>{{ item.line_total|inr }}</span></li>
+          {% endfor %}
+        </ul>
+        {% include "shop/_totals.html" with subtotal=order.subtotal shipping=order.shipping total=order.total %}
+      </section>
+      <section>
+        <h2 class="section-title">Shipping to</h2>
+        <address class="address">
+          {{ order.full_name }}<br>
+          {{ order.address_line1 }}<br>
+          {% if order.address_line2 %}{{ order.address_line2 }}<br>{% endif %}
+          {{ order.city }}{% if order.state %}, {{ order.state }}{% endif %} {{ order.postal_code }}<br>
+          {{ order.country }}<br>
+          {{ order.phone }}
+        </address>
+      </section>
+    </div>
+  </div>
+{% endblock %}

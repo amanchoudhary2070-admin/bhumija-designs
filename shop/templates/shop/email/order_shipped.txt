@@ -1,0 +1,11 @@
+{% autoescape off %}Hi {{ order.full_name }},
+
+Your order {{ order.reference }} has been packed and is on its way.
+{% if order.tracking_number %}
+Courier: {{ order.courier }}
+Tracking number: {{ order.tracking_number }}
+{% endif %}
+Reply to this email if you have any questions.
+
+{{ SHOP_NAME }}
+{% endautoescape %}

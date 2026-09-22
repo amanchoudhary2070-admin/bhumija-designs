@@ -1,0 +1,14 @@
+{% extends "shop/base.html" %}
+{% block title %}Your Wishlist - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">Your Wishlist</h1>
+    {% if products %}
+      <ul class="grid grid-4">
+        {% for product in products %}<li>{% include "shop/_product_card.html" %}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty"><p>Your wishlist is empty. <a href="{% url 'shop:product_list' %}">Browse the shop</a> and tap the heart on anything you love.</p></div>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "shop/base.html" %}
+{% block title %}{{ post.title }} - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap narrow-lg">
+    <p class="muted"><a href="{% url 'content:post_list' %}">&larr; Journal</a></p>
+    <h1 class="page-title">{{ post.title }}</h1>
+    <p class="muted small">{{ post.published_at|date:"d M Y" }}</p>
+    {% if post.cover %}<img class="post-cover" src="{{ post.cover.url }}" alt="">{% endif %}
+    <div class="prose">{{ post.body|safe }}</div>
+  </div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "shop/base.html" %}
+{% block title %}{{ page.title }} - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap narrow-lg">
+    <h1 class="page-title">{{ page.title }}</h1>
+    <div class="prose">{{ page.body|safe }}</div>
+  </div>
+{% endblock %}

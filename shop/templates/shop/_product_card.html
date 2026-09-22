@@ -1,0 +1,34 @@
+{% load icons shop_extras %}<article class="card{% if not product.in_stock %} is-sold{% endif %}">
+  <div class="card-media">
+    <a href="{{ product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="" loading="lazy" width="720" height="900">
+      {% else %}
+        <span class="ph-fallback">{{ product.name|first }}</span>
+      {% endif %}
+    </a>
+    <form data-wishlist-form method="post" action="{% url 'shop:wishlist_toggle' product.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button class="wishlist-btn{% if product.pk in wishlist_ids %} is-active{% endif %}" type="submit" data-wishlist-toggle data-product="{{ product.pk }}"
+        aria-pressed="{% if product.pk in wishlist_ids %}true{% else %}false{% endif %}" aria-label="Toggle wishlist for {{ product.name }}">
+        {% if product.pk in wishlist_ids %}{% ui_icon "heart-filled" 17 %}{% else %}{% ui_icon "heart" 17 1.8 %}{% endif %}
+      </button>
+    </form>
+    {% if product.discount_percent %}<span class="badge badge-discount">{{ product.discount_percent }}% OFF</span>
+    {% elif not product.in_stock %}<span class="badge badge-sold">Sold out</span>
+    {% elif product.stock <= 2 %}<span class="badge badge-low">Only {{ product.stock }} left</span>{% endif %}
+  </div>
+  <div class="card-body">
+    <h3 class="card-title"><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
+    <div class="card-price">
+      <span class="price">{{ product.price|inr }}</span>
+      {% if product.compare_at_price %}<span class="compare">{{ product.compare_at_price|inr }}</span>{% endif %}
+    </div>
+    {% if product.rating_count %}
+      <div class="card-rating">{% include "shop/_stars.html" with rating=product.rating_avg size=13 %}<span class="muted">({{ product.rating_count }})</span></div>
+    {% else %}
+      <div class="card-rating muted small">No reviews yet</div>
+    {% endif %}
+  </div>
+</article>

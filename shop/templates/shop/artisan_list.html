@@ -1,0 +1,19 @@
+{% extends "shop/base.html" %}
+{% block title %}Our Artisans - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">The Artisans Behind Our Craft</h1>
+    <p class="lede">Every piece is made by hand by artisan families who have practised Mithila art for generations.</p>
+    <ul class="artisan-grid">
+      {% for artisan in artisans %}
+        <li class="artisan-card">
+          {% if artisan.photo %}<img src="{{ artisan.photo.url }}" alt="{{ artisan.name }}">{% endif %}
+          <h2>{{ artisan.name }}</h2>
+          {% if artisan.village %}<p class="muted">{{ artisan.village }}</p>{% endif %}
+          {% if artisan.bio %}<p>{{ artisan.bio }}</p>{% endif %}
+          <p class="muted small">{{ artisan.piece_count }} piece{{ artisan.piece_count|pluralize }} in the shop</p>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

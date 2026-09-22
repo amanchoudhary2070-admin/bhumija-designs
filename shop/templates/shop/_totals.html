@@ -1,0 +1,5 @@
+{% load shop_extras %}<dl class="totals">
+  <div class="row"><dt>Subtotal</dt><dd>{{ subtotal|inr }}</dd></div>
+  <div class="row"><dt>Shipping</dt><dd>{% if shipping == 0 %}Free{% else %}{{ shipping|inr }}{% endif %}</dd></div>
+  <div class="row row-total"><dt>Total</dt><dd>{{ total|inr }}</dd></div>
+</dl>

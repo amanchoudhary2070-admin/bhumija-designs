@@ -1,0 +1,13 @@
+{% extends "shop/base.html" %}
+{% block title %}Profile - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap narrow">
+    <h1 class="page-title">Profile Details</h1>
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      <div class="field"><label for="full_name">Full name</label><input id="full_name" name="full_name" type="text" value="{{ user.first_name }}"></div>
+      <div class="field"><label>Email</label><input type="email" value="{{ user.email }}" disabled></div>
+      <button class="btn btn-terracotta" type="submit">Save changes</button>
+    </form>
+  </div>
+{% endblock %}

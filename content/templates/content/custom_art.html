@@ -1,0 +1,35 @@
+{% extends "shop/base.html" %}
+{% load icons %}
+{% block title %}Custom Art - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <section class="custom-hero">
+      <h1>Custom Art, Just for You</h1>
+      <p class="lede">Commission your own Madhubani artwork or personalised home decor &mdash; a portrait, a wedding memento, or a piece sized for a specific wall.</p>
+    </section>
+    <div class="cart-layout">
+      <form method="post" enctype="multipart/form-data" class="stacked-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-grid">
+          <div class="field">{{ form.name.label_tag }}{{ form.name }}{{ form.name.errors }}</div>
+          <div class="field">{{ form.email.label_tag }}{{ form.email }}{{ form.email.errors }}</div>
+          <div class="field">{{ form.phone.label_tag }}{{ form.phone }}{{ form.phone.errors }}</div>
+          <div class="field">{{ form.size.label_tag }}{{ form.size }}{{ form.size.errors }}</div>
+        </div>
+        <div class="field"><label for="{{ form.budget.id_for_label }}">{{ form.budget.label }}</label>{{ form.budget }}{{ form.budget.errors }}</div>
+        <div class="field">{{ form.description.label_tag }}{{ form.description }}{{ form.description.errors }}</div>
+        <div class="field"><label for="{{ form.reference_image.id_for_label }}">Reference image <span class="muted">(optional)</span></label>{{ form.reference_image }}{{ form.reference_image.errors }}</div>
+        <button class="btn btn-terracotta" type="submit">{% ui_icon "camera" 17 1.7 %} Request a quote</button>
+      </form>
+      <aside class="summary">
+        <h2>How it works</h2>
+        <ol class="how-steps">
+          <li>Tell us what you'd like &mdash; a portrait, a scene, or a size for a specific space.</li>
+          <li>We'll email a quote and estimated timeline within 2 working days.</li>
+          <li>Once confirmed, your artisan begins work; most custom pieces take 2-3 weeks.</li>
+        </ol>
+      </aside>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "shop/base.html" %}
+{% load shop_extras %}
+{% block title %}My Orders - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">My Orders</h1>
+    {% if orders %}
+      <ul class="order-list">
+        {% for order in orders %}
+          <li>
+            <a href="{{ order.get_absolute_url }}">
+              <span>{{ order.reference }}</span>
+              <span class="muted">{{ order.created_at|date:"d M Y" }}</span>
+              <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+              <span>{{ order.total|inr }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">You haven't placed any orders yet. <a href="{% url 'shop:product_list' %}">Start shopping</a>.</p>
+    {% endif %}
+  </div>
+{% endblock %}

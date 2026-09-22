@@ -1,0 +1,194 @@
+{% load static icons shop_extras %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ SHOP_NAME }} | {{ SHOP_TAGLINE }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ SHOP_TAGLINE }} Authentic Madhubani art, home decor and handicrafts, made by artisan families in Bihar.{% endblock %}">
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="announce">
+    <div class="wrap announce-bar">
+      <p class="announce-msg">Free shipping on orders above {{ FREE_SHIPPING_THRESHOLD|inr }} &nbsp;|&nbsp; Authentic handcrafted products &nbsp;|&nbsp; Support artisans, preserve culture</p>
+      <div class="announce-links">
+        <span>India (INR)</span>
+        <a href="{% url 'shop:track_order' %}">Track order</a>
+        <a href="{% url 'content:contact' %}">Help</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="wrap header-bar">
+      <button class="menu-toggle" type="button" data-open-menu aria-expanded="false" aria-controls="mobile-nav">
+        {% ui_icon "menu" 24 %}<span class="sr-only">Menu</span>
+      </button>
+
+      <a class="brand" href="{% url 'content:home' %}">
+        {% category_icon "lotus" 34 %}
+        <span class="brand-text">
+          <strong>{{ SHOP_NAME|upper }}</strong>
+          <small>{{ SHOP_TAGLINE }}</small>
+        </span>
+      </a>
+
+      <form class="search" role="search" action="{% url 'shop:product_list' %}" method="get">
+        <label class="sr-only" for="q">Search for paintings, home decor, crafts and more</label>
+        <input id="q" name="q" type="search" placeholder="Search for paintings, home decor, crafts and more..." value="{{ query|default:'' }}">
+        <button type="submit" aria-label="Search">{% ui_icon "search" 19 %}</button>
+      </form>
+
+      <nav class="header-actions" aria-label="Account">
+        <a href="{% if user.is_authenticated %}{% url 'accounts:dashboard' %}{% else %}{% url 'accounts:login' %}{% endif %}">
+          {% ui_icon "user" 22 1.6 %}<span class="action-label">{% if user.is_authenticated %}Account{% else %}Login{% endif %}</span>
+        </a>
+        <a href="{% url 'shop:wishlist' %}">
+          {% ui_icon "heart" 22 1.6 %}<span class="action-label">Wishlist</span>
+        </a>
+        <a class="cart-link" href="{% url 'shop:cart' %}">
+          <span class="cart-icon">{% ui_icon "cart" 22 1.6 %}{% if cart_count %}<span class="badge">{{ cart_count }}</span>{% endif %}</span>
+          <span class="action-label">Cart</span>
+        </a>
+      </nav>
+    </div>
+
+    <nav class="main-nav" aria-label="Main">
+      <div class="wrap nav-bar">
+        <ul class="nav-list">
+          <li><a href="{% url 'content:home' %}"{% if request.resolver_match.url_name == 'home' %} aria-current="page"{% endif %}>Home</a></li>
+          {% for cat in nav_categories %}
+            {% if cat.show_in_nav %}
+              <li class="has-dropdown">
+                <a href="{{ cat.get_absolute_url }}">{{ cat.menu_label }}{% if cat.children.all %} {% ui_icon "chevron-down" 13 2.2 %}{% endif %}</a>
+                {% if cat.children.all %}
+                  <div class="dropdown">
+                    {% for child in cat.children.all %}
+                      <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
+                    {% endfor %}
+                    <a class="dropdown-all" href="{{ cat.get_absolute_url }}">View all {{ cat.name }} &rarr;</a>
+                  </div>
+                {% endif %}
+              </li>
+            {% endif %}
+          {% endfor %}
+          <li><a href="{% url 'content:about' %}">About Us</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <div class="mobile-nav-head">
+      <span class="brand-text"><strong>{{ SHOP_NAME|upper }}</strong></span>
+      <button type="button" data-close-menu aria-label="Close menu">{% ui_icon "close" 22 %}</button>
+    </div>
+    <form class="search" role="search" action="{% url 'shop:product_list' %}" method="get">
+      <label class="sr-only" for="mq">Search</label>
+      <input id="mq" name="q" type="search" placeholder="Search products">
+      <button type="submit" aria-label="Search">{% ui_icon "search" 18 %}</button>
+    </form>
+    <ul class="mobile-nav-list">
+      <li><a href="{% url 'content:home' %}">Home</a></li>
+      {% for cat in nav_categories %}{% if cat.show_in_nav %}<li><a href="{{ cat.get_absolute_url }}">{{ cat.menu_label }}</a></li>{% endif %}{% endfor %}
+      <li><a href="{% url 'content:about' %}">About Us</a></li>
+      <li><a href="{% url 'shop:new_arrivals' %}">New Arrivals</a></li>
+      <li><a href="{% url 'shop:artisan_list' %}">Our Artisans</a></li>
+    </ul>
+    <ul class="mobile-nav-list mobile-nav-account">
+      <li><a href="{% if user.is_authenticated %}{% url 'accounts:dashboard' %}{% else %}{% url 'accounts:login' %}{% endif %}">{% ui_icon "user" 18 1.6 %} {% if user.is_authenticated %}My account{% else %}Login / Sign up{% endif %}</a></li>
+      <li><a href="{% url 'shop:wishlist' %}">{% ui_icon "heart" 18 1.6 %} Wishlist</a></li>
+      <li><a href="{% url 'shop:track_order' %}">{% ui_icon "truck" 18 1.6 %} Track order</a></li>
+    </ul>
+  </div>
+  <div class="mobile-nav-backdrop" data-close-menu hidden></div>
+
+  <main id="main">
+    {% if messages %}
+      <div class="wrap">
+        <ul class="messages" role="status">
+          {% for message in messages %}
+            <li class="message message-{{ message.tags }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <section class="newsletter">
+    <div class="wrap newsletter-bar">
+      <div>
+        <h2>Stay Connected</h2>
+        <p>Get updates on new arrivals, exclusive offers and stories from our artisans.</p>
+      </div>
+      <form method="post" action="{% url 'content:newsletter_signup' %}" class="newsletter-form">
+        {% csrf_token %}
+        <label class="sr-only" for="newsletter-email">Email address</label>
+        <input id="newsletter-email" name="email" type="email" required placeholder="Enter your email address">
+        <button class="btn" type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div class="footer-brand">
+        {% category_icon "lotus" 30 %}
+        <strong>{{ SHOP_NAME|upper }}</strong>
+        <p>{{ SHOP_TAGLINE }}</p>
+        <ul class="social-links" aria-label="Follow us">
+          <li><a href="{{ SOCIAL_LINKS.facebook }}" aria-label="Facebook">f</a></li>
+          <li><a href="{{ SOCIAL_LINKS.instagram }}" aria-label="Instagram">ig</a></li>
+          <li><a href="{{ SOCIAL_LINKS.youtube }}" aria-label="YouTube">yt</a></li>
+          <li><a href="{{ SOCIAL_LINKS.pinterest }}" aria-label="Pinterest">p</a></li>
+          <li><a href="{{ SOCIAL_LINKS.linkedin }}" aria-label="LinkedIn">in</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="{% url 'content:home' %}">Home</a></li>
+          <li><a href="{% url 'shop:product_list' %}">Shop</a></li>
+          <li><a href="{% url 'content:about' %}">About Us</a></li>
+          <li><a href="{% url 'shop:artisan_list' %}">Our Artisans</a></li>
+          <li><a href="{% url 'content:post_list' %}">Blog</a></li>
+          <li><a href="{% url 'content:contact' %}">Contact Us</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Customer Care</h3>
+        <ul>
+          <li><a href="{% url 'shop:track_order' %}">Track order</a></li>
+          <li><a href="{% url 'content:page' 'shipping-policy' %}">Shipping policy</a></li>
+          <li><a href="{% url 'content:page' 'returns-refunds' %}">Return &amp; refund</a></li>
+          <li><a href="{% url 'content:page' 'terms-conditions' %}">Terms &amp; conditions</a></li>
+          <li><a href="{% url 'content:page' 'privacy-policy' %}">Privacy policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Contact Us</h3>
+        <ul class="footer-contact">
+          <li>{% ui_icon "mail" 16 1.6 %} <a href="mailto:{{ SHOP_EMAIL }}">{{ SHOP_EMAIL }}</a></li>
+          <li>{% ui_icon "phone" 16 1.6 %} <a href="tel:{{ SHOP_PHONE|cut:' ' }}">{{ SHOP_PHONE }}</a></li>
+          <li>{% ui_icon "map-pin" 16 1.6 %} {{ SHOP_ADDRESS }}</li>
+        </ul>
+        <h3 class="pay-heading">We Accept</h3>
+        <ul class="pay-badges">
+          <li>UPI</li><li>Cards</li><li>Netbanking</li><li>Wallets</li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <p>&copy; {% now "Y" %} {{ SHOP_NAME }}. All rights reserved.</p>
+      <p>Made with care, for artisans and a more beautiful world.</p>
+    </div>
+  </footer>
+
+  <script src="{% static 'shop/shop.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

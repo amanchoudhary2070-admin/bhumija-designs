@@ -1,0 +1,23 @@
+{% extends "shop/base.html" %}
+{% block title %}Journal - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">Journal</h1>
+    {% if posts %}
+      <ul class="grid grid-3 post-grid">
+        {% for post in posts %}
+          <li class="post-card">
+            <a href="{{ post.get_absolute_url }}">
+              {% if post.cover %}<img src="{{ post.cover.url }}" alt="">{% else %}<span class="ph-fallback">{{ post.title|first }}</span>{% endif %}
+            </a>
+            <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+            <p class="muted small">{{ post.published_at|date:"d M Y" }}</p>
+            {% if post.excerpt %}<p>{{ post.excerpt }}</p>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No posts yet &mdash; check back soon.</p>
+    {% endif %}
+  </div>
+{% endblock %}

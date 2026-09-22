@@ -1,0 +1,39 @@
+{% extends "shop/base.html" %}
+{% load icons shop_extras %}
+{% block title %}Payment - {{ SHOP_NAME }}{% endblock %}
+
+{% block content %}
+  <div class="wrap pay-page">
+    <div class="summary pay-box">
+      <h1>Complete Your Payment</h1>
+      <p class="muted">Order {{ order.reference }}</p>
+      <p class="pay-amount">{{ order.total|inr }}</p>
+      <button id="rzp-button" class="btn btn-terracotta btn-block" type="button">{% ui_icon "shield" 17 1.8 %} Pay securely</button>
+      <p class="muted small pay-methods">UPI &middot; Cards &middot; Netbanking &middot; Wallets</p>
+      <p id="rzp-error" class="message message-error" hidden>We couldn't open the payment window. <a href="{{ request.path }}">Try again</a>, or <a href="{% url 'content:contact' %}">contact us</a> if this keeps happening.</p>
+      <p class="muted small"><a href="{% url 'shop:cart' %}">Cancel and return to cart</a></p>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ options|json_script:"rzp-options" }}
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    (function () {
+      var button = document.getElementById("rzp-button");
+      var errorBox = document.getElementById("rzp-error");
+      var opened = false;
+      function openCheckout() {
+        if (typeof Razorpay === "undefined") { errorBox.hidden = false; return; }
+        errorBox.hidden = true;
+        var options = JSON.parse(document.getElementById("rzp-options").textContent);
+        new Razorpay(options).open();
+      }
+      button.addEventListener("click", openCheckout);
+      window.addEventListener("load", function () {
+        if (!opened) { opened = true; setTimeout(openCheckout, 500); }
+      });
+    })();
+  </script>
+{% endblock %}
