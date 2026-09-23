@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "shop",
     "content",
     "accounts",
+    "sellers",
 ]
 
 MIDDLEWARE = [
@@ -195,10 +196,13 @@ if not DEBUG:
         raise ImproperlyConfigured(
             "PAYMENT_PROVIDER=dev lets anyone mark orders as paid. Use 'razorpay' in production."
         )
-    if PAYMENT_PROVIDER == "razorpay" and not (RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET):
-        raise ImproperlyConfigured("Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.")
     if PAYMENT_PROVIDER not in {"razorpay"}:
         raise ImproperlyConfigured("Set PAYMENT_PROVIDER=razorpay in production.")
+    # Note: RAZORPAY_KEY_ID/SECRET are deliberately NOT required here. Without them the
+    # site still runs fully (browsing, cart, accounts, admin) — only the "Pay" button on
+    # checkout shows a friendly error, via the PaymentError handling in payments.py /
+    # views/checkout.py. This lets you deploy and preview the store before Razorpay is
+    # set up, then add real keys later with no code or redeploy-logic changes needed.
 
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)

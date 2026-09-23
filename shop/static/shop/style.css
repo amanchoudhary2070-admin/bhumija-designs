@@ -543,7 +543,12 @@ h3 { font-size: 1.15rem; font-family: var(--sans); font-weight: 600; }
 .status-pill.status-review { background: #f5ddd2; color: var(--terracotta-dark); }
 .status-pill.status-cancelled { background: #eee; color: var(--muted); }
 
-/* ---------- Account pages ---------- */
+.checkbox-list { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; padding: 0.75rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); max-height: 12rem; overflow-y: auto; }
+.checkbox-list label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 400; margin: 0; }
+.link-button.small, .link-button-small { font-size: 0.82rem; }
+.order-list .inline-form { margin-left: auto; padding: 0 0.25rem 0.75rem; }
+.order-list li { display: flex; flex-wrap: wrap; align-items: center; }
+.order-list li a { flex: 1; }
 
 .account-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0 2.5rem; }
 .account-tile { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.5rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; text-align: center; font-weight: 600; font-size: 0.88rem; }

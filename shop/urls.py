@@ -12,6 +12,7 @@ urlpatterns = [
     path("product/<slug:slug>/", catalog.product_detail, name="product_detail"),
     path("product/<slug:slug>/review/", catalog.review_create, name="review_create"),
     path("artisans/", catalog.artisan_list, name="artisan_list"),
+    path("seller/<slug:slug>/", catalog.seller_storefront, name="seller_storefront"),
     path("wishlist/", catalog.wishlist, name="wishlist"),
     path("wishlist/toggle/<int:product_id>/", catalog.wishlist_toggle, name="wishlist_toggle"),
     path("cart/", cart.cart_detail, name="cart"),

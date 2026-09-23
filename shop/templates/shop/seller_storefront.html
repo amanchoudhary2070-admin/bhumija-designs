@@ -1,0 +1,20 @@
+{% extends "shop/base.html" %}
+{% block title %}{{ seller.shop_name }} - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <section class="custom-hero">
+      {% if seller.logo %}<img src="{{ seller.logo.url }}" alt="" style="width:5rem;height:5rem;border-radius:999px;object-fit:cover;margin-bottom:1rem">{% endif %}
+      <h1>{{ seller.shop_name }}</h1>
+      {% if seller.bio %}<p class="lede">{{ seller.bio }}</p>{% endif %}
+      <p class="muted small">{{ seller.product_count }} product{{ seller.product_count|pluralize }}</p>
+    </section>
+
+    {% if page.object_list %}
+      <ul class="grid grid-4">
+        {% for product in page %}<li>{% include "shop/_product_card.html" %}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty"><p>This seller hasn't listed any products yet.</p></div>
+    {% endif %}
+  </div>
+{% endblock %}

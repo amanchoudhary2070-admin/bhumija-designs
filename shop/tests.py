@@ -328,3 +328,149 @@ class ContentTests(TestCase):
         order = Order.objects.create(email="e@example.com", full_name="A", address_line1="1 Rd", city="Patna", postal_code="800001", subtotal=100, shipping=0, total=100)
         response = self.client.post(reverse("shop:track_order"), {"order_number": order.reference, "email": "e@example.com"})
         self.assertRedirects(response, order.get_absolute_url())
+
+
+class SellerMarketplaceTests(TestCase):
+    def make_seller(self, email="seller@example.com", approved=True, shop_name="Kamla's Crafts"):
+        user = make_user(email, "StrongPass123")
+        from .models import SellerProfile
+        return SellerProfile.objects.create(user=user, shop_name=shop_name, is_approved=approved)
+
+    def login_seller(self, seller):
+        self.client.login(username=seller.user.username, password="StrongPass123")
+
+    # -- application flow --------------------------------------------------------
+
+    def test_apply_requires_login(self):
+        response = self.client.get(reverse("sellers:apply"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("login", response["Location"])
+
+    def test_apply_creates_unapproved_seller(self):
+        make_user("newseller@example.com", "StrongPass123")
+        self.client.login(username="newseller@example.com", password="StrongPass123")
+        response = self.client.post(reverse("sellers:apply"), {
+            "shop_name": "New Crafts Co", "phone": "98765 43210", "bio": "We make things.",
+        })
+        self.assertRedirects(response, reverse("sellers:dashboard"))
+        from .models import SellerProfile
+        seller = SellerProfile.objects.get(shop_name="New Crafts Co")
+        self.assertFalse(seller.is_approved)
+        self.assertEqual(seller.phone, "+919876543210")
+
+    def test_dashboard_redirects_to_apply_when_not_a_seller(self):
+        make_user()
+        self.client.login(username="buyer@example.com", password="StrongPass123")
+        self.assertRedirects(self.client.get(reverse("sellers:dashboard")), reverse("sellers:apply"))
+
+    # -- product visibility: approval gate ----------------------------------------
+
+    def test_unapproved_sellers_products_hidden_from_public_catalogue(self):
+        seller = self.make_seller(approved=False)
+        Product.objects.create(name="Pending Piece", price=Decimal("999"), stock=1, seller=seller)
+        response = self.client.get(reverse("shop:product_list"))
+        self.assertNotContains(response, "Pending Piece")
+
+    def test_approved_sellers_products_appear_publicly(self):
+        seller = self.make_seller(approved=True)
+        p = Product.objects.create(name="Live Piece", price=Decimal("999"), stock=1, seller=seller)
+        p.categories.add(make_category())
+        response = self.client.get(reverse("shop:product_list"))
+        self.assertContains(response, "Live Piece")
+        self.assertContains(self.client.get(p.get_absolute_url()), "Sold by Kamla&#x27;s Crafts")
+
+    def test_unapproved_product_detail_404s_publicly(self):
+        seller = self.make_seller(approved=False)
+        p = Product.objects.create(name="Pending Piece", price=Decimal("999"), stock=1, seller=seller)
+        self.assertEqual(self.client.get(p.get_absolute_url()).status_code, 404)
+
+    def test_seller_storefront_requires_approval(self):
+        seller = self.make_seller(approved=False)
+        self.assertEqual(self.client.get(seller.get_absolute_url()).status_code, 404)
+        seller.is_approved = True
+        seller.save()
+        self.assertEqual(self.client.get(seller.get_absolute_url()).status_code, 200)
+
+    # -- product CRUD + permissions -----------------------------------------------
+
+    def test_seller_can_create_product(self):
+        seller = self.make_seller()
+        cat = make_category()
+        self.login_seller(seller)
+        response = self.client.post(reverse("sellers:product_create"), {
+            "name": "Hand-carved Bowl", "categories": [cat.pk], "description": "A bowl.",
+            "details": "", "price": "1200", "compare_at_price": "", "stock": "3",
+            "dimensions": "", "materials": "", "dispatch_days": "3",
+        })
+        self.assertRedirects(response, reverse("sellers:product_list"))
+        product = Product.objects.get(name="Hand-carved Bowl")
+        self.assertEqual(product.seller, seller)
+
+    def test_seller_cannot_edit_another_sellers_product(self):
+        seller_a = self.make_seller("a@example.com", shop_name="Shop A")
+        seller_b = self.make_seller("b@example.com", shop_name="Shop B")
+        product = Product.objects.create(name="Shop A Item", price=Decimal("500"), stock=1, seller=seller_a)
+        self.login_seller(seller_b)
+        response = self.client.get(reverse("sellers:product_edit", args=[product.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_seller_can_toggle_own_product_visibility(self):
+        seller = self.make_seller()
+        product = Product.objects.create(name="Toggle Me", price=Decimal("500"), stock=1, seller=seller, is_active=True)
+        self.login_seller(seller)
+        self.client.post(reverse("sellers:product_toggle_active", args=[product.pk]))
+        product.refresh_from_db()
+        self.assertFalse(product.is_active)
+
+    def test_seller_cannot_toggle_others_product(self):
+        seller_a = self.make_seller("a2@example.com", shop_name="Shop A2")
+        seller_b = self.make_seller("b2@example.com", shop_name="Shop B2")
+        product = Product.objects.create(name="Shop A2 Item", price=Decimal("500"), stock=1, seller=seller_a, is_active=True)
+        self.login_seller(seller_b)
+        self.client.post(reverse("sellers:product_toggle_active", args=[product.pk]))
+        product.refresh_from_db()
+        self.assertTrue(product.is_active)  # unchanged
+
+    # -- order visibility scoped per seller ----------------------------------------
+
+    @override_settings(PAYMENT_PROVIDER="dev")
+    def test_seller_sees_only_their_own_order_items(self):
+        seller_a = self.make_seller("a3@example.com", shop_name="Shop A3")
+        seller_b = self.make_seller("b3@example.com", shop_name="Shop B3")
+        product_a = Product.objects.create(name="A3 Item", price=Decimal("500"), stock=5, seller=seller_a, is_active=True)
+        product_b = Product.objects.create(name="B3 Item", price=Decimal("300"), stock=5, seller=seller_b, is_active=True)
+
+        self.client.post(reverse("shop:cart_add", args=[product_a.pk]), {"quantity": 1})
+        self.client.post(reverse("shop:cart_add", args=[product_b.pk]), {"quantity": 1})
+        self.client.post(reverse("shop:checkout"), CHECKOUT_DATA)
+        order = Order.objects.latest("id")
+        fulfill_order(order.pk)
+
+        self.login_seller(seller_a)
+        response = self.client.get(reverse("sellers:order_list"))
+        item_names = [item.name for item in response.context["page"].object_list]
+        self.assertEqual(item_names, ["A3 Item"])
+
+    def test_seller_can_mark_own_item_shipped(self):
+        seller = self.make_seller()
+        product = Product.objects.create(name="Ship Me", price=Decimal("500"), stock=5, seller=seller, is_active=True)
+        order = Order.objects.create(
+            email="x@example.com", full_name="X", address_line1="1 Rd", city="Patna", postal_code="800001",
+            subtotal=500, shipping=0, total=500, status=Order.Status.PAID,
+        )
+        from .models import OrderItem
+        item = OrderItem.objects.create(order=order, product=product, seller=seller, name=product.name, unit_price=product.price, quantity=1)
+        self.login_seller(seller)
+        self.client.post(reverse("sellers:order_item_toggle_shipped", args=[item.pk]))
+        item.refresh_from_db()
+        self.assertTrue(item.is_shipped_by_seller)
+
+    def test_order_snapshots_seller_even_if_product_reassigned_later(self):
+        seller = self.make_seller()
+        product = Product.objects.create(name="Snapshot Item", price=Decimal("500"), stock=5, seller=seller, is_active=True)
+        self.client.post(reverse("shop:cart_add", args=[product.pk]), {"quantity": 1})
+        with override_settings(PAYMENT_PROVIDER="dev"):
+            self.client.post(reverse("shop:checkout"), CHECKOUT_DATA)
+        order = Order.objects.latest("id")
+        item = order.items.get()
+        self.assertEqual(item.seller, seller)

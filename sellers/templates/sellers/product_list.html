@@ -1,0 +1,39 @@
+{% extends "shop/base.html" %}
+{% load shop_extras icons %}
+{% block title %}My Products - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <div class="section-head">
+      <h1 class="page-title" style="padding-top:0">My Products</h1>
+      <a class="btn btn-terracotta" href="{% url 'sellers:product_create' %}">{% ui_icon "plus" 16 2 %} Add Product</a>
+    </div>
+
+    {% if page.object_list %}
+      <ul class="order-list">
+        {% for product in page %}
+          <li>
+            <a href="{% url 'sellers:product_edit' product.pk %}">
+              <span>{{ product.name }}</span>
+              <span class="muted">Stock: {{ product.stock }}</span>
+              <span class="status-pill {% if product.is_active %}status-paid{% else %}status-cancelled{% endif %}">{% if product.is_active %}Visible{% else %}Hidden{% endif %}</span>
+              <span>{{ product.price|inr }}</span>
+            </a>
+            <form method="post" action="{% url 'sellers:product_toggle_active' product.pk %}" class="inline-form">
+              {% csrf_token %}
+              <button class="link-button small" type="submit">{% if product.is_active %}Hide{% else %}Unhide{% endif %}</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+      {% if page.has_other_pages %}
+        <nav class="pager" aria-label="Pages">
+          {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">{% ui_icon "chevron-left" 16 2.2 %} Previous</a>{% else %}<span></span>{% endif %}
+          <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+          {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Next {% ui_icon "chevron-right" 16 2.2 %}</a>{% else %}<span></span>{% endif %}
+        </nav>
+      {% endif %}
+    {% else %}
+      <div class="empty"><p>No products yet. <a href="{% url 'sellers:product_create' %}">Add your first product</a>.</p></div>
+    {% endif %}
+  </div>
+{% endblock %}

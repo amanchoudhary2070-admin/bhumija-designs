@@ -13,7 +13,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from ..forms import ReviewForm
-from ..models import Artisan, Category, Order, Product, Review, WishlistItem
+from ..models import Artisan, Category, Order, Product, Review, SellerProfile, WishlistItem
 from ..templatetags.shop_extras import inr
 
 PAGE_SIZE = 12
@@ -59,7 +59,7 @@ def _qs(params, **changes):
 
 def product_list(request, category_slug=None, new_arrivals=False):
     category = get_object_or_404(Category, slug=category_slug) if category_slug else None
-    products = Product.objects.filter(is_active=True)
+    products = Product.objects.public()
     if category:
         products = products.filter(categories__in=category.family_ids())
 
@@ -179,12 +179,19 @@ def artisan_list(request):
     return render(request, "shop/artisan_list.html", {"artisans": artisans})
 
 
+def seller_storefront(request, slug):
+    seller = get_object_or_404(SellerProfile, slug=slug, is_approved=True)
+    products = Product.objects.public().filter(seller=seller)
+    page = Paginator(products, PAGE_SIZE).get_page(request.GET.get("page"))
+    return render(request, "shop/seller_storefront.html", {"seller": seller, "page": page})
+
+
 def product_detail(request, slug):
     product = get_object_or_404(
-        Product.objects.select_related("artisan").prefetch_related("gallery", "categories"), slug=slug, is_active=True
+        Product.objects.public().select_related("artisan", "seller").prefetch_related("gallery", "categories"), slug=slug
     )
     category = product.primary_category
-    related = Product.objects.filter(is_active=True, stock__gt=0).exclude(pk=product.pk)
+    related = Product.objects.public().filter(stock__gt=0).exclude(pk=product.pk)
     if category:
         related = related.filter(categories__in=category.family_ids()).distinct()
     related = related[:6]

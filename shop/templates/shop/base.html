@@ -43,6 +43,9 @@
       </form>
 
       <nav class="header-actions" aria-label="Account">
+        <a href="{% url 'sellers:dashboard' %}" class="sell-link">
+          {% ui_icon "gift" 22 1.6 %}<span class="action-label">Sell</span>
+        </a>
         <a href="{% if user.is_authenticated %}{% url 'accounts:dashboard' %}{% else %}{% url 'accounts:login' %}{% endif %}">
           {% ui_icon "user" 22 1.6 %}<span class="action-label">{% if user.is_authenticated %}Account{% else %}Login{% endif %}</span>
         </a>
@@ -102,6 +105,7 @@
       <li><a href="{% if user.is_authenticated %}{% url 'accounts:dashboard' %}{% else %}{% url 'accounts:login' %}{% endif %}">{% ui_icon "user" 18 1.6 %} {% if user.is_authenticated %}My account{% else %}Login / Sign up{% endif %}</a></li>
       <li><a href="{% url 'shop:wishlist' %}">{% ui_icon "heart" 18 1.6 %} Wishlist</a></li>
       <li><a href="{% url 'shop:track_order' %}">{% ui_icon "truck" 18 1.6 %} Track order</a></li>
+      <li><a href="{% url 'sellers:dashboard' %}">{% ui_icon "gift" 18 1.6 %} Sell on {{ SHOP_NAME }}</a></li>
     </ul>
   </div>
   <div class="mobile-nav-backdrop" data-close-menu hidden></div>
@@ -157,6 +161,7 @@
           <li><a href="{% url 'shop:artisan_list' %}">Our Artisans</a></li>
           <li><a href="{% url 'content:post_list' %}">Blog</a></li>
           <li><a href="{% url 'content:contact' %}">Contact Us</a></li>
+          <li><a href="{% url 'sellers:dashboard' %}">Sell on {{ SHOP_NAME }}</a></li>
         </ul>
       </div>
       <div>

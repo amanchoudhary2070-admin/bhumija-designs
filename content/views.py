@@ -13,9 +13,9 @@ def home(request):
     promo_left = Banner.objects.filter(placement=Banner.Placement.PROMO_LEFT, is_active=True).first()
     promo_right = Banner.objects.filter(placement=Banner.Placement.PROMO_RIGHT, is_active=True).first()
     categories = Category.objects.filter(parent=None, show_on_home=True)
-    featured = Product.objects.filter(is_active=True, is_featured=True, stock__gt=0)[:6]
+    featured = Product.objects.public().filter(is_featured=True, stock__gt=0)[:6]
     if featured.count() < 6:
-        featured = Product.objects.filter(is_active=True, stock__gt=0)[:6]
+        featured = Product.objects.public().filter(stock__gt=0)[:6]
     return render(request, "content/home.html", {
         "hero_slides": hero_slides,
         "promo_left": promo_left,

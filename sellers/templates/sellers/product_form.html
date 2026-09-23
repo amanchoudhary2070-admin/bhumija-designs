@@ -1,0 +1,33 @@
+{% extends "shop/base.html" %}
+{% block title %}{% if is_new %}Add Product{% else %}Edit Product{% endif %} - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">{% if is_new %}Add a Product{% else %}Edit “{{ product.name }}”{% endif %}</h1>
+    <form method="post" enctype="multipart/form-data" class="stacked-form" style="max-width:38rem">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="field">{{ form.name.label_tag }}{{ form.name }}{{ form.name.errors }}</div>
+      <div class="field">
+        <label>{{ form.categories.label }}</label>
+        <div class="checkbox-list">{{ form.categories }}</div>
+        {{ form.categories.errors }}
+      </div>
+      <div class="field">{{ form.details.label_tag }}{{ form.details }}{{ form.details.errors }}</div>
+      <div class="field">{{ form.description.label_tag }}{{ form.description }}{{ form.description.errors }}</div>
+      <div class="form-grid">
+        <div class="field">{{ form.price.label_tag }} (\u20b9){{ form.price }}{{ form.price.errors }}</div>
+        <div class="field">{{ form.compare_at_price.label_tag }} <span class="muted">(optional MRP)</span>{{ form.compare_at_price }}{{ form.compare_at_price.errors }}</div>
+        <div class="field">{{ form.stock.label_tag }}{{ form.stock }}{{ form.stock.errors }}</div>
+        <div class="field">{{ form.dispatch_days.label_tag }}{{ form.dispatch_days }}{{ form.dispatch_days.errors }}</div>
+        <div class="field">{{ form.dimensions.label_tag }}{{ form.dimensions }}{{ form.dimensions.errors }}</div>
+        <div class="field">{{ form.materials.label_tag }}{{ form.materials }}{{ form.materials.errors }}</div>
+      </div>
+      <div class="field">
+        <label for="{{ form.image.id_for_label }}">Photo</label>
+        {% if product.image %}<img src="{{ product.image.url }}" alt="" style="width:6rem;height:7.5rem;object-fit:cover;border-radius:4px;margin-bottom:0.5rem">{% endif %}
+        {{ form.image }}{{ form.image.errors }}
+      </div>
+      <button class="btn btn-terracotta" type="submit">{% if is_new %}Add product{% else %}Save changes{% endif %}</button>
+    </form>
+  </div>
+{% endblock %}

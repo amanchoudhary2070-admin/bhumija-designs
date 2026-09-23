@@ -110,6 +110,22 @@ at runtime).
    webhook) when you're ready to accept real payments — Razorpay requires KYC/business
    verification before live mode activates.
 
+## Seller marketplace
+
+Anyone can apply to sell on the site at `/sell/apply/` — they get their own dashboard to
+add products (with their own photos, price, stock) once an admin approves their account
+(**Django admin → Seller profiles → select → "Approve selected sellers"**). Approved
+sellers get a public shop page (`/seller/<their-shop>/`), their products show a "Sold by"
+link on the product page, and they can see (only) their own items across all orders and
+mark them shipped from `/sell/orders/`.
+
+**What this does not do yet**: all payments still go to your own Razorpay account — there's
+no automatic payout split to each seller's bank account. That requires Razorpay Route (a
+separate "marketplace payments" product where each seller completes their own KYC on
+Razorpay's platform) — a meaningful extra integration, not included here. Until then, settle
+with sellers manually (bank transfer, on whatever schedule you agree), using the seller's
+own order list as the record of what they sold.
+
 ## Deploying
 
 Any host that runs Python works (Render, Railway, Fly.io, a VPS). A `Procfile` is included,

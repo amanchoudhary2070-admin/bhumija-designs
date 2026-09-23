@@ -1,0 +1,27 @@
+{% extends "shop/base.html" %}
+{% load shop_extras %}
+{% block title %}My Orders - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">Orders for My Products</h1>
+    <p class="muted">Only your own items are shown here, even when a buyer's cart included other sellers' products too.</p>
+    {% if page.object_list %}
+      <ul class="order-list">
+        {% for item in page %}
+          <li>
+            <span>{{ item.order.reference }}</span>
+            <span>{{ item.quantity }} &times; {{ item.name }}</span>
+            <span class="muted">{{ item.order.full_name }}, {{ item.order.city }}</span>
+            <span class="status-pill {% if item.is_shipped_by_seller %}status-shipped{% else %}status-pending{% endif %}">{% if item.is_shipped_by_seller %}Shipped{% else %}To ship{% endif %}</span>
+            <form method="post" action="{% url 'sellers:order_item_toggle_shipped' item.pk %}" class="inline-form">
+              {% csrf_token %}
+              <button class="link-button small" type="submit">Mark {% if item.is_shipped_by_seller %}not shipped{% else %}shipped{% endif %}</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No orders yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

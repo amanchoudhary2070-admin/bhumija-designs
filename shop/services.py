@@ -39,6 +39,7 @@ def create_order_from_cart(cart, customer_data, user=None):
         OrderItem(
             order=order,
             product=line.product,
+            seller=line.product.seller,
             name=line.product.name,
             unit_price=line.product.price,
             quantity=line.quantity,

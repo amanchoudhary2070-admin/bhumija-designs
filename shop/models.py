@@ -75,6 +75,37 @@ class Category(models.Model):
         return [self.pk, *self.children.values_list("pk", flat=True)]
 
 
+class SellerProfile(models.Model):
+    """A marketplace seller. One per user account; approved by an admin before their
+    products go live, so the marketplace isn't open to anonymous spam listings."""
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="seller_profile")
+    shop_name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=140, unique=True, blank=True)
+    bio = models.TextField(blank=True, help_text="Shown on your public seller page.")
+    phone = models.CharField(max_length=20, blank=True)
+    logo = models.ImageField(upload_to="sellers/", blank=True)
+    is_approved = models.BooleanField(
+        default=False, help_text="Products from this seller are only public once approved."
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.shop_name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = unique_slug(self, self.shop_name, 140)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("shop:seller_storefront", args=[self.slug])
+
+    @property
+    def product_count(self):
+        return self.products.filter(is_active=True).count()
+
+
 class Artisan(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=110, unique=True, blank=True)
@@ -95,9 +126,22 @@ class Artisan(models.Model):
         super().save(*args, **kwargs)
 
 
+class ProductQuerySet(models.QuerySet):
+    def public(self):
+        """Active products that are safe to show publicly: official listings, or
+        listings from a marketplace seller who has been approved by an admin."""
+        return self.filter(is_active=True).filter(
+            models.Q(seller__isnull=True) | models.Q(seller__is_approved=True)
+        )
+
+
 class Product(models.Model):
     categories = models.ManyToManyField(Category, blank=True, related_name="products")
     artisan = models.ForeignKey(Artisan, null=True, blank=True, on_delete=models.SET_NULL, related_name="products")
+    seller = models.ForeignKey(
+        SellerProfile, null=True, blank=True, on_delete=models.SET_NULL, related_name="products",
+        help_text="Empty means this is an official Bhoomija Designs listing rather than a marketplace seller's.",
+    )
     name = models.CharField(max_length=140)
     slug = models.SlugField(max_length=160, unique=True, blank=True)
     description = models.TextField(blank=True)
@@ -125,6 +169,8 @@ class Product(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ProductQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at"]
@@ -269,9 +315,16 @@ class OrderItem(models.Model):
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, null=True, on_delete=models.SET_NULL, related_name="+")
+    seller = models.ForeignKey(
+        SellerProfile, null=True, blank=True, on_delete=models.SET_NULL, related_name="order_items",
+        help_text="Snapshot of who was selling this item at order time.",
+    )
     name = models.CharField(max_length=140)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
+    is_shipped_by_seller = models.BooleanField(
+        default=False, help_text="The seller's own record that they've packed/sent this item."
+    )
 
     def __str__(self):
         return f"{self.quantity} × {self.name}"

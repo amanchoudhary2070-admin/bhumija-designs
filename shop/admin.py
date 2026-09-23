@@ -1,8 +1,22 @@
 from django.contrib import admin, messages
 from django.utils.html import format_html
 
-from .models import Artisan, Category, Order, OrderItem, Product, ProductImage, Review, WishlistItem
+from .models import Artisan, Category, Order, OrderItem, Product, ProductImage, Review, SellerProfile, WishlistItem
 from .services import send_shipped_email
+
+
+@admin.register(SellerProfile)
+class SellerProfileAdmin(admin.ModelAdmin):
+    list_display = ("shop_name", "user", "phone", "product_count", "is_approved", "created_at")
+    list_editable = ("is_approved",)
+    list_filter = ("is_approved",)
+    search_fields = ("shop_name", "user__email", "user__username", "phone")
+    actions = ["approve_sellers"]
+
+    @admin.action(description="Approve selected sellers (makes their listings public)")
+    def approve_sellers(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} seller(s) approved.")
 
 
 @admin.register(Category)
@@ -29,11 +43,11 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("thumb", "name", "artisan", "price", "compare_at_price", "stock", "rating_avg", "is_featured", "is_active")
+    list_display = ("thumb", "name", "seller", "artisan", "price", "compare_at_price", "stock", "rating_avg", "is_featured", "is_active")
     list_display_links = ("thumb", "name")
     list_editable = ("price", "compare_at_price", "stock", "is_featured", "is_active")
-    list_filter = ("is_active", "is_featured", "categories", "artisan")
-    search_fields = ("name", "description")
+    list_filter = ("is_active", "is_featured", "categories", "artisan", "seller")
+    search_fields = ("name", "description", "seller__shop_name")
     filter_horizontal = ("categories",)
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("rating_avg", "rating_count")

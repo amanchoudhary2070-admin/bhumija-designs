@@ -1,0 +1,36 @@
+{% extends "shop/base.html" %}
+{% load icons %}
+{% block title %}Seller Dashboard - {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap">
+    <h1 class="page-title">{{ seller.shop_name }}</h1>
+
+    {% if not seller.is_approved %}
+      <p class="message message-warning">Your seller account is awaiting approval. You can add and edit products now, but they'll only appear in the shop once an admin approves your account.</p>
+    {% endif %}
+
+    <div class="account-grid">
+      <a class="account-tile" href="{% url 'sellers:product_list' %}">{% ui_icon "package" 26 1.5 %}<span>My Products ({{ product_count }})</span></a>
+      <a class="account-tile" href="{% url 'sellers:product_create' %}">{% ui_icon "plus" 26 1.5 %}<span>Add Product</span></a>
+      <a class="account-tile" href="{% url 'sellers:order_list' %}">{% ui_icon "truck" 26 1.5 %}<span>Orders ({{ pending_orders }})</span></a>
+      <a class="account-tile" href="{{ seller.get_absolute_url }}">{% ui_icon "globe" 26 1.5 %}<span>View My Shop Page</span></a>
+    </div>
+
+    <h2 class="section-title">Recently added</h2>
+    {% if recent_products %}
+      <ul class="order-list">
+        {% for product in recent_products %}
+          <li>
+            <a href="{% url 'sellers:product_edit' product.pk %}">
+              <span>{{ product.name }}</span>
+              <span class="muted">{{ product.price|floatformat:2 }}</span>
+              <span class="status-pill {% if product.is_active %}status-paid{% else %}status-cancelled{% endif %}">{% if product.is_active %}Visible{% else %}Hidden{% endif %}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">You haven't added any products yet. <a href="{% url 'sellers:product_create' %}">Add your first one</a>.</p>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -32,7 +32,7 @@
       </div>
 
       <div class="buy">
-        {% if product.artisan %}<a class="artisan-tag" href="{% url 'shop:artisan_list' %}">By {{ product.artisan.name }}{% if product.artisan.village %}, {{ product.artisan.village }}{% endif %}</a>{% endif %}
+        {% if product.seller %}<a class="artisan-tag" href="{{ product.seller.get_absolute_url }}">Sold by {{ product.seller.shop_name }}</a>{% elif product.artisan %}<a class="artisan-tag" href="{% url 'shop:artisan_list' %}">By {{ product.artisan.name }}{% if product.artisan.village %}, {{ product.artisan.village }}{% endif %}</a>{% endif %}
         <h1>{{ product.name }}</h1>
         {% if product.details %}<p class="muted">{{ product.details }}</p>{% endif %}
 

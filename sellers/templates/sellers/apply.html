@@ -1,0 +1,20 @@
+{% extends "shop/base.html" %}
+{% block title %}Sell on {{ SHOP_NAME }}{% endblock %}
+{% block content %}
+  <div class="wrap narrow-lg">
+    <h1 class="page-title">Sell on {{ SHOP_NAME }}</h1>
+    <p class="lede">Are you a Mithila artist or craftsperson? Set up your own shop here — list your pieces with your own photos, prices and stock, and reach buyers looking for authentic handmade work.</p>
+    <div class="prose">
+      <p>New sellers are reviewed before their listings go live (usually within 2 working days), so buyers can trust everything they see here is genuine. Once approved, you'll get your own dashboard to add products, track orders, and mark items as shipped.</p>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="stacked-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="field">{{ form.shop_name.label_tag }}{{ form.shop_name }}{{ form.shop_name.errors }}</div>
+      <div class="field">{{ form.phone.label_tag }}{{ form.phone }}{{ form.phone.errors }}</div>
+      <div class="field">{{ form.bio.label_tag }}{{ form.bio }}{{ form.bio.errors }}</div>
+      <div class="field"><label for="{{ form.logo.id_for_label }}">Shop logo <span class="muted">(optional)</span></label>{{ form.logo }}{{ form.logo.errors }}</div>
+      <button class="btn btn-terracotta" type="submit">Apply to sell</button>
+    </form>
+  </div>
+{% endblock %}
