@@ -6,3 +6,4 @@ whitenoise>=6.6       # serves static files in production
 gunicorn>=22.0        # production web server
 dj-database-url>=2.1  # DATABASE_URL support
 psycopg[binary]>=3.1  # Postgres driver, needed once DATABASE_URL is set (e.g. on Render/Railway)
+django-storages[s3]>=1.14  # optional: only used if AWS_*/R2 env vars are set (see README)

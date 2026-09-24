@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "content",
     "accounts",
     "sellers",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -128,6 +129,28 @@ STORAGES = {
         )
     },
 }
+
+# --- Media storage (S3-compatible: Cloudflare R2, AWS S3, Backblaze B2, ...) ---------
+# By default, uploaded files (product photos, etc.) sit on local disk, which is fine for
+# your own laptop but is LOST on every restart on hosts with no persistent disk (e.g.
+# Render's free tier). Set these env vars to keep uploads permanently instead — see the
+# README for step-by-step Cloudflare R2 setup (it has a genuinely free tier). Leave them
+# blank to keep using local disk (nothing else changes).
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL")  # e.g. https://<account_id>.r2.cloudflarestorage.com
+AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")  # the public hostname files are served from (e.g. pub-xxxx.r2.dev)
+
+USE_CLOUD_MEDIA = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME and AWS_S3_ENDPOINT_URL)
+if USE_CLOUD_MEDIA:
+    STORAGES["default"] = {"BACKEND": "storages.backends.s3.S3Storage"}
+    AWS_DEFAULT_ACL = None          # R2 doesn't support per-object ACLs; the bucket's own public-access setting governs this
+    AWS_QUERYSTRING_AUTH = False    # plain public URLs, not signed/expiring links
+    AWS_S3_FILE_OVERWRITE = False   # two uploads with the same name get different filenames instead of overwriting each other
+    AWS_S3_ADDRESSING_STYLE = "virtual"
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 # --- Email --------------------------------------------------------------------
 # Emails print to the console until you configure SMTP (Resend, Postmark, Brevo,

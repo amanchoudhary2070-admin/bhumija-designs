@@ -126,23 +126,66 @@ Razorpay's platform) — a meaningful extra integration, not included here. Unti
 with sellers manually (bank transfer, on whatever schedule you agree), using the seller's
 own order list as the record of what they sold.
 
+## Keeping uploaded photos permanently (Cloudflare R2)
+
+Hosts without a persistent disk (Render's free tier included) lose any file written to
+local disk on every restart. The demo product photos self-heal automatically (see
+below), but **real photos a seller uploads through `/sell/` will be lost** unless you
+point the site at proper object storage. Cloudflare R2 has a genuinely free tier (10 GB,
+no egress fees) and needs no code changes — just env vars:
+
+1. Sign up at [cloudflare.com](https://dash.cloudflare.com) → **R2 Object Storage** → create a bucket (any name, e.g. `bhoomija-media`).
+2. In the bucket's **Settings**, enable **Public Access** (via the "R2.dev subdomain" option) and copy the public URL it gives you (looks like `pub-xxxxxxxx.r2.dev`) — that's your `AWS_S3_CUSTOM_DOMAIN`.
+3. Go to **R2 → Manage API Tokens → Create API Token**, permission "Object Read & Write", scoped to your bucket. Copy the **Access Key ID** and **Secret Access Key** it gives you (shown once).
+4. On the same token page, note your **Account ID** (also shown in the R2 dashboard's right sidebar). Your endpoint URL is `https://<account_id>.r2.cloudflarestorage.com`.
+5. Set these on Render (Environment tab, same as the other variables):
+   ```
+   AWS_ACCESS_KEY_ID=<the access key from step 3>
+   AWS_SECRET_ACCESS_KEY=<the secret key from step 3>
+   AWS_STORAGE_BUCKET_NAME=bhoomija-media
+   AWS_S3_ENDPOINT_URL=https://<account_id>.r2.cloudflarestorage.com
+   AWS_S3_CUSTOM_DOMAIN=pub-xxxxxxxx.r2.dev
+   ```
+6. Redeploy. From then on, every uploaded photo (products, seller logos, custom-art references) goes straight to R2 and survives restarts and redeploys. Existing local-disk photos aren't migrated automatically — re-upload them once, or re-run `seed_demo` for the demo catalogue.
+
+Leave all five blank and the site keeps using local disk exactly as before — nothing else changes.
+
+## Self-healing demo photos
+
+Every deploy runs `python manage.py repair_images` (wired into `bootstrap`, itself
+wired into the Procfile/Build Command). It checks every product, artisan and banner
+photo and regenerates any that's missing from storage — so even without R2 configured,
+the *demo* catalogue's placeholder photos reappear automatically after a redeploy on a
+host with no persistent disk. This only helps the generated demo images, not real
+uploads (those need R2 — see above).
+
 ## Deploying
 
-Any host that runs Python works (Render, Railway, Fly.io, a VPS). A `Procfile` is included,
-and `python manage.py bootstrap` (wired into the Procfile's `release` step) creates the
-admin login from `DJANGO_SUPERUSER_EMAIL`/`DJANGO_SUPERUSER_PASSWORD` and seeds demo data
-automatically on first deploy — useful on hosts (like Render's free tier) that don't give
-you a shell to run `createsuperuser` by hand. It's safe to redeploy; it only acts once.
+Any host that runs Python works (Render, Railway, Fly.io, a VPS). `python manage.py
+bootstrap` creates the admin login from `DJANGO_SUPERUSER_EMAIL`/`DJANGO_SUPERUSER_PASSWORD`,
+seeds demo data on first deploy, and repairs any missing photos — useful on hosts (like
+Render's free tier) that don't give you a shell to run `createsuperuser` by hand. It's
+safe to redeploy; seeding only happens once.
+
+**A Procfile is included, but not every host runs its `release:` line automatically**
+(Render's free tier doesn't — that's a paid-only "Pre-Deploy Command" feature there). The
+reliable way that works everywhere is to run migrate/collectstatic/bootstrap as part of
+the **Build Command** itself, before the app starts — see step 2 below.
 
 ### Fastest free path: Render.com
 
-1. Put the project in a GitHub repo. If you don't want to use git, GitHub's web UI lets
-   you drag the whole project folder onto https://github.com/new to upload it directly.
+1. Put the project in a GitHub repo. If you don't want to use git, GitHub Desktop
+   (desktop.github.com) can publish a whole folder with no command line needed — open it,
+   "Add Local Repository" → your project folder → "create a repository" → "Publish repository".
 2. On [render.com](https://render.com), **New → Web Service**, connect the repo. Render
-   detects Python automatically (build: `pip install -r requirements.txt`, via the Procfile
-   for the rest).
+   detects Python automatically. In **Settings → Build & Deploy**, set:
+   - **Build Command**:
+     ```
+     pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py bootstrap
+     ```
+   - **Start Command**: `gunicorn config.wsgi --log-file -`
 3. **New → PostgreSQL** (free), then copy its **Internal Database URL**.
-4. On the web service, add these environment variables:
+4. On the web service, add these environment variables (**Environment** tab → **"Add from .env"** lets you paste this whole block at once):
    ```
    DJANGO_DEBUG=0
    DJANGO_SECRET_KEY=<generate one: python -c "import secrets; print(secrets.token_urlsafe(60))">
@@ -156,25 +199,26 @@ you a shell to run `createsuperuser` by hand. It's safe to redeploy; it only act
    DJANGO_SUPERUSER_EMAIL=you@example.com
    DJANGO_SUPERUSER_PASSWORD=<a strong password>
    ```
-   (`PAYMENT_PROVIDER` must be `razorpay` here — `dev` is refused whenever `DJANGO_DEBUG=0`,
-   so checkout won't work until real or test Razorpay keys are set.)
-5. Deploy. Once it's live, your admin login works immediately at `/admin/` — no shell needed.
+   Double-check `<your-app>.onrender.com` matches your **actual** service URL exactly
+   (shown at the top of the service page) — a mismatch here causes a "Bad Request (400)".
+   `PAYMENT_PROVIDER` must be `razorpay` — `dev` is refused whenever `DJANGO_DEBUG=0`, but
+   `RAZORPAY_KEY_ID`/`SECRET` can be left blank for now: the site still runs fully, only
+   the checkout "Pay" button shows a friendly error until real keys are added.
+5. Deploy (Manual Deploy → Deploy latest commit, if it doesn't start automatically). Once
+   it's live, your admin login works immediately at `/admin/` — no shell needed.
 
 Free-tier facts worth knowing: the web service sleeps after 15 minutes of no traffic
 (next visit takes ~30-60 seconds to wake up), and the free Postgres database expires
 after 30 days (create a new one, or move to Render's ~$6-7/month plan to keep it
-permanently). Uploaded media (product photos added after deploy) sit on disk that isn't
-guaranteed to survive a redeploy — fine for trying things out, but plan on S3/R2/Cloudinary
-before this is a real store.
+permanently). Uploaded photos need Cloudflare R2 to survive restarts — see above.
 
 ### Checklist for a real store (any host)
 
 - [ ] `DJANGO_DEBUG=0` and a real `DJANGO_SECRET_KEY` — the app refuses to start otherwise
 - [ ] `PAYMENT_PROVIDER=razorpay` with live keys — `dev` is refused when debug is off
-- [ ] `DJANGO_ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` / `SITE_URL` set to your real domain
+- [ ] `DJANGO_ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` / `SITE_URL` set to your real domain, matching exactly
 - [ ] **A real database**: `DATABASE_URL` to Postgres, `pip install "psycopg[binary]"`
-- [ ] **Persistent media storage**: most hosts wipe local disk on deploy, which would delete
-      product photos — use S3, Cloudflare R2 or Cloudinary via `django-storages`
+- [ ] **Persistent media storage**: set up Cloudflare R2 (see above) before real sellers upload real photos
 - [ ] Real email via `EMAIL_HOST*` (Resend, Postmark, Brevo, ...)
 - [ ] Change `ADMIN_URL` to something non-obvious
 - [ ] Run `migrate`, `collectstatic`, `createsuperuser`; replace demo products/photos

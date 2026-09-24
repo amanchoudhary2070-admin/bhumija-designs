@@ -34,3 +34,9 @@ class Command(BaseCommand):
             call_command("seed_demo")
         else:
             self.stdout.write("Skipped demo data (already seeded, or SEED_DEMO_DATA=0).")
+
+        # Hosts without a persistent disk (e.g. Render's free tier) lose locally-generated
+        # files on every restart even though the database rows survive. Regenerate anything
+        # missing so the shop doesn't end up with blank photos after a redeploy or a
+        # free-tier instance waking from sleep.
+        call_command("repair_images")
