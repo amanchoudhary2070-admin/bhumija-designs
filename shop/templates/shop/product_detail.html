@@ -48,6 +48,15 @@
         </p>
         <p class="muted small tax-note">Inclusive of all taxes</p>
 
+        <div class="pincode-check" data-pincode-check data-dispatch-days="{{ product.dispatch_days }}">
+          <label for="pincode-input">{% ui_icon "map-pin" 16 1.7 %} Check delivery date</label>
+          <div class="pincode-row">
+            <input id="pincode-input" type="text" inputmode="numeric" maxlength="6" placeholder="Enter PIN code" data-pincode-input>
+            <button type="button" class="btn btn-quiet" data-pincode-submit>Check</button>
+          </div>
+          <p class="pincode-result" data-pincode-result hidden></p>
+        </div>
+
         {% if product.in_stock %}
           <form class="buy-form" method="post" action="{% url 'shop:cart_add' product.pk %}">
             {% csrf_token %}
@@ -162,6 +171,15 @@
         <h2>You may also like</h2>
         <ul class="grid grid-6">
           {% for product in related %}<li>{% include "shop/_product_card.html" %}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if recently_viewed %}
+      <section class="related section">
+        <h2>Recently viewed</h2>
+        <ul class="grid grid-6">
+          {% for product in recently_viewed %}<li>{% include "shop/_product_card.html" %}</li>{% endfor %}
         </ul>
       </section>
     {% endif %}

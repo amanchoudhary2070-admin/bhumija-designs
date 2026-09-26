@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from datetime import timedelta
 from django.views.decorators.http import require_POST
 
 from shop.models import OrderItem, Product, SellerProfile
@@ -43,12 +45,29 @@ def dashboard(request):
     if not seller:
         return redirect("sellers:apply")
     products = seller.products.all()
-    pending_orders = OrderItem.objects.filter(seller=seller, order__status__in=["paid", "shipped"]).count()
+    paid_items = OrderItem.objects.filter(seller=seller, order__status__in=["paid", "shipped"])
+    pending_orders = paid_items.count()
+    total_revenue = paid_items.aggregate(total=Sum(F("unit_price") * F("quantity")))["total"] or 0
+    low_stock = products.filter(is_active=True, stock__gt=0, stock__lte=2).count()
+
+    today = timezone.localdate()
+    daily_counts = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        count = paid_items.filter(order__created_at__date=day).count()
+        daily_counts.append({"label": day.strftime("%a"), "count": count})
+    chart_max = max([d["count"] for d in daily_counts] + [1])
+    for d in daily_counts:
+        d["percent"] = int(d["count"] / chart_max * 100) if chart_max else 0
+
     return render(request, "sellers/dashboard.html", {
         "seller": seller,
         "product_count": products.count(),
         "active_count": products.filter(is_active=True).count(),
         "pending_orders": pending_orders,
+        "total_revenue": total_revenue,
+        "low_stock": low_stock,
+        "daily_counts": daily_counts,
         "recent_products": products[:5],
     })
 

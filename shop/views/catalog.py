@@ -17,6 +17,8 @@ from ..models import Artisan, Category, Order, Product, Review, SellerProfile, W
 from ..templatetags.shop_extras import inr
 
 PAGE_SIZE = 12
+RECENTLY_VIEWED_KEY = "recently_viewed"
+RECENTLY_VIEWED_MAX = 10
 
 SORTS = {
     "popular": ("Popularity", ("-rating_count", "-rating_avg", "-created_at")),
@@ -208,6 +210,13 @@ def product_detail(request, slug):
     if request.user.is_authenticated:
         user_review = product.reviews.filter(user=request.user).first()
 
+    # Recently viewed: a small session-stored list of product ids, most recent first.
+    recent_ids = [pid for pid in request.session.get(RECENTLY_VIEWED_KEY, []) if pid != product.pk]
+    recently_viewed = list(Product.objects.public().filter(pk__in=recent_ids[:RECENTLY_VIEWED_MAX]))
+    recently_viewed.sort(key=lambda p: recent_ids.index(p.pk))
+    recent_ids.insert(0, product.pk)
+    request.session[RECENTLY_VIEWED_KEY] = recent_ids[:RECENTLY_VIEWED_MAX]
+
     return render(request, "shop/product_detail.html", {
         "product": product,
         "category": category,
@@ -217,6 +226,7 @@ def product_detail(request, slug):
         "user_review": user_review,
         "review_form": ReviewForm(instance=user_review),
         "max_quantity": min(product.stock, 10),
+        "recently_viewed": recently_viewed,
     })
 
 

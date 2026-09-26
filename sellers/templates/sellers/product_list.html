@@ -16,6 +16,7 @@
               <span>{{ product.name }}</span>
               <span class="muted">Stock: {{ product.stock }}</span>
               <span class="status-pill {% if product.is_active %}status-paid{% else %}status-cancelled{% endif %}">{% if product.is_active %}Visible{% else %}Hidden{% endif %}</span>
+              {% if product.is_active and product.stock > 0 and product.stock <= 2 %}<span class="low-stock-tag">Only {{ product.stock }} left</span>{% endif %}
               <span>{{ product.price|inr }}</span>
             </a>
             <form method="post" action="{% url 'sellers:product_toggle_active' product.pk %}" class="inline-form">

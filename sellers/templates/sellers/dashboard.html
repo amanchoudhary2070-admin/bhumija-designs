@@ -1,5 +1,5 @@
 {% extends "shop/base.html" %}
-{% load icons %}
+{% load icons shop_extras %}
 {% block title %}Seller Dashboard - {{ SHOP_NAME }}{% endblock %}
 {% block content %}
   <div class="wrap">
@@ -8,6 +8,23 @@
     {% if not seller.is_approved %}
       <p class="message message-warning">Your seller account is awaiting approval. You can add and edit products now, but they'll only appear in the shop once an admin approves your account.</p>
     {% endif %}
+
+    <div class="stat-row">
+      <div class="stat-card"><span class="stat-value">{{ total_revenue|inr }}</span><span class="stat-label">Total revenue (paid orders)</span></div>
+      <div class="stat-card"><span class="stat-value">{{ pending_orders }}</span><span class="stat-label">Items sold</span></div>
+      <div class="stat-card"><span class="stat-value">{{ active_count }}</span><span class="stat-label">Live products</span></div>
+      <div class="stat-card"><span class="stat-value">{{ low_stock }}</span><span class="stat-label">Low stock (2 or fewer)</span></div>
+    </div>
+
+    <h2 class="section-title">Items sold, last 7 days</h2>
+    <div class="mini-chart">
+      {% for d in daily_counts %}
+        <div class="mini-chart-col">
+          <div class="mini-chart-bar" style="height: {{ d.percent }}%" title="{{ d.count }}"></div>
+          <span class="mini-chart-label">{{ d.label }}</span>
+        </div>
+      {% endfor %}
+    </div>
 
     <div class="account-grid">
       <a class="account-tile" href="{% url 'sellers:product_list' %}">{% ui_icon "package" 26 1.5 %}<span>My Products ({{ product_count }})</span></a>
@@ -23,7 +40,7 @@
           <li>
             <a href="{% url 'sellers:product_edit' product.pk %}">
               <span>{{ product.name }}</span>
-              <span class="muted">{{ product.price|floatformat:2 }}</span>
+              <span class="muted">{{ product.price|inr }}</span>
               <span class="status-pill {% if product.is_active %}status-paid{% else %}status-cancelled{% endif %}">{% if product.is_active %}Visible{% else %}Hidden{% endif %}</span>
             </a>
           </li>

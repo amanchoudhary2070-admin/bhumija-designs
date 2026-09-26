@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ SHOP_NAME }} | {{ SHOP_TAGLINE }}{% endblock %}</title>
   <meta name="description" content="{% block description %}{{ SHOP_TAGLINE }} Authentic Madhubani art, home decor and handicrafts, made by artisan families in Bihar.{% endblock %}">
+  <meta name="theme-color" content="#243930">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23243930'/%3E%3Cpath d='M20 34c-8-3-9-12-9-18 4 2 7 6 9 11 2-5 5-9 9-11 0 6-1 15-9 18z' fill='none' stroke='%23e7bf9b' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="{% static 'shop/style.css' %}">
   {% block head %}{% endblock %}
 </head>
@@ -194,6 +196,11 @@
   </footer>
 
   <script src="{% static 'shop/shop.js' %}" defer></script>
+  {% if SHOP_PHONE %}
+    <a class="help-fab" href="https://wa.me/{{ SHOP_PHONE|cut:'+'|cut:' ' }}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.06-1.33A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.18-1.77 1.24-.45.06-1 .09-1.63-.1-.38-.11-.86-.28-1.48-.55-2.6-1.12-4.3-3.75-4.43-3.93-.13-.18-1.06-1.4-1.06-2.68 0-1.27.67-1.9.9-2.16.24-.26.52-.32.7-.32h.5c.16 0 .38-.02.58.45.22.53.75 1.83.82 1.96.06.13.1.29.02.47-.08.18-.13.29-.25.44-.13.16-.27.35-.38.47-.13.13-.26.27-.11.53.15.26.65 1.08 1.4 1.75.97.86 1.78 1.13 2.05 1.26.26.13.42.11.57-.06.16-.18.66-.77.84-1.03.18-.26.36-.22.6-.13.26.09 1.63.77 1.9.91.28.14.46.21.53.32.07.11.07.65-.15 1.27z"/></svg>
+    </a>
+  {% endif %}
   {% block scripts %}{% endblock %}
 </body>
 </html>

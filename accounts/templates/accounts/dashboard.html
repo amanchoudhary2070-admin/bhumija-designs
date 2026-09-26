@@ -1,5 +1,5 @@
 {% extends "shop/base.html" %}
-{% load icons %}
+{% load icons shop_extras %}
 {% block title %}My Account - {{ SHOP_NAME }}{% endblock %}
 {% block content %}
   <div class="wrap">
@@ -20,7 +20,7 @@
               <span>{{ order.reference }}</span>
               <span class="muted">{{ order.created_at|date:"d M Y" }}</span>
               <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
-              <span>{{ order.total|floatformat:2 }}</span>
+              <span>{{ order.total|inr }}</span>
             </a>
           </li>
         {% endfor %}
